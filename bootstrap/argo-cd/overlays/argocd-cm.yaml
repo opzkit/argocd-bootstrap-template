@@ -1,0 +1,26 @@
+apiVersion: v1
+data:
+  admin.enabled: 'false'
+  statusbadge.enabled: 'true'
+  users.anonymous.enabled: 'false'
+  url: https://__argocd.host__
+  repository.credentials: |
+    - url: git@github.com
+      sshPrivateKeySecret:
+        name: githubsecret
+        key: sshPrivateKey
+  dex.config: |
+    connectors:
+    - type: github
+      id: github
+      name: GitHub
+      config:
+        clientID: __dex.github.clientId__
+        clientSecret: $dex.github.clientSecret
+        orgs:
+        - name: __dex.github.organisation__
+          teams:
+          - __dex.github.team__
+kind: ConfigMap
+metadata:
+  name: argocd-cm

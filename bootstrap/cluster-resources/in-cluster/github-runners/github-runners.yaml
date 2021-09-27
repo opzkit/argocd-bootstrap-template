@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: github-runners
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: github-runners
+spec:
+  generators:
+  - clusters: { }
+  template:
+    metadata:
+      name: '{{name}}-github-runners'
+    spec:
+      project: "default"
+      source:
+        repoURL: __argocd.bootstrap.repoURL__
+        targetRevision: __argocd.bootstrap.revision__
+        path: k8s-cluster-apps/github-runners/clusters/{{name}}
+      destination:
+        server: '{{server}}'
+        namespace: kube-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+

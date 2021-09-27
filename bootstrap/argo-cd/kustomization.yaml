@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - base/argocd-ns.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/__argocd.version__/manifests/install.yaml
+  - https://raw.githubusercontent.com/argoproj-labs/applicationset/__argocd.applicationset.version__/manifests/install.yaml
+  - base/argocd-ui-ingress.yaml
+
+patchesStrategicMerge:
+  - overlays/argocd-cm.yaml
+  - overlays/argocd-rbac-cm.yaml
+  - overlays/argocd-cmd-params-cm.yaml
+  - overlays/argocd-server-service.yaml
+  - overlays/argocd-repo-server-resources.yaml
+  - overlays/argocd-server-resources.yaml
+  - overlays/argocd-redis-server-resources.yaml
+  - overlays/argocd-dex-server-resources.yaml
+  - overlays/argocd-application-controller-resources.yaml
+  - overlays/argocd-applicationset-controller-resources.yaml
+
+patchesJson6902:
+  - path: overlays/argocd-server-deploy-command.yaml
+    target:
+      group: apps
+      kind: Deployment
+      name: argocd-server
+      version: v1
+
+namespace: argocd
+
+patches:
+  # reset the crbs to `subject.namespace: default`, so that argo-cd will later change them to the actual ns
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+    patch: |-
+      - op: replace
+        path: /subjects/0/namespace
+        value: default

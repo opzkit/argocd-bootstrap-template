@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: default
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+  name: argocd
+spec:
+  rules:
+  - host: __argocd.host__
+    http:
+      paths:
+      - backend:
+          service:
+            name: argocd-server
+            port:
+              name: "http"
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - __argocd.host__

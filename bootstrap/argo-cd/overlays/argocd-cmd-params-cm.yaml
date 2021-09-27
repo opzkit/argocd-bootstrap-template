@@ -1,0 +1,6 @@
+apiVersion: v1
+data:
+  reposerver.repo.cache.expiration: 0h1m0s
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm

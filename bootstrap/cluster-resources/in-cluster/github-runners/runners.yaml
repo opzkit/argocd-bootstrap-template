@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: github-runners
+---
+
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: runners
+  namespace: github-runners
+spec:
+  template:
+    spec:
+      organization: __dex.github.organisation__
+      image: summerwind/actions-runner-dind
+      dockerdWithinRunnerContainer: true
+      workDir: /home/runner/work
+      resources:
+        limits:
+          cpu: "1"
+          memory: "4Gi"
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+      dockerdContainerResources:
+        limits:
+          cpu: "1"
+          memory: "4Gi"
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+---
+
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: HorizontalRunnerAutoscaler
+metadata:
+  name: runner-autoscaler
+  namespace: github-runners
+spec:
+  scaleTargetRef:
+    name: runners
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: PercentageRunnersBusy
+    scaleUpThreshold: '0.75'    # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up
+    scaleDownThreshold: '0.3'   # The percentage of busy runners at which the number of desired runners are re-evaluated to scale down
+    scaleUpFactor: '1.4'        # The scale up multiplier factor applied to desired count
+    scaleDownFactor: '0.7'      # The scale down multiplier factor applied to desired count

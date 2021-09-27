@@ -1,0 +1,3 @@
+- {op: add,  path: /spec/template/spec/containers/0/args/-, value: --provider=aws}
+- {op: add,  path: /spec/template/spec/containers/0/args/-, value: --aws-zone-type=public}
+- {op: add,  path: /spec/template/spec/containers/0/args/-, value: --txt-owner-id=__externaldns.clusterName__ }
