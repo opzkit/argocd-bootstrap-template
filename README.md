@@ -21,20 +21,20 @@ commit and push
 
 ### Variables
 | Name            | Description     |
-  |:----------------|------------:|
-| argocd.version                  | Version of ArgoCD to use |
-| argocd.applicationset.version   | Version of [ApplicationSetController] to use |
-| argocd.host                     | The DNS name to the installation of ArgoCD, for example argocd.sparetimecoders.com |
-| dex.github.clientId             | The [OAuth] application clientID |
-| dex.github.organisation         | The Github Organisation for the [OAuth] app |
-| dex.github.team                 | The Github team to allow access, read more [here][RBAC] |
-| argocd.bootstrap.repoURL | URL to this repository |
-| argocd.bootstrap.revision | Branch/commit/tag to use |
-| argocd.apps.repoURL |URL to the ArgoCD Applications repository|
-| argocd.apps.revision |  Branch/commit/tag to use |
-| externaldns.clusterName | The name of the kubernetes cluster, used to manage DNS records with [External-DNS](./bootstrap/cluster-resources/in-cluster/external-dns/README.md)|
-| externaldns.version | External DNS version to use, see above |
-| github.action.controller.version | [Github Action runners](./bootstrap/cluster-resources/in-cluster/github-runners/README.md) version to use |
+  |:----------------|--------------:|
+| argocd.version                    | Version of ArgoCD to use |
+| argocd.applicationset.version     | Version of [ApplicationSetController] to use |
+| argocd.host                       | The DNS name to the installation of ArgoCD, for example argocd.sparetimecoders.com |
+| dex.github.clientId               | The [OAuth] application clientID |
+| dex.github.organisation           | The Github Organisation for the [OAuth] app |
+| dex.github.team                   | The Github team to allow access, read more [here][RBAC] |
+| argocd.bootstrap.repoURL          | URL to this repository |
+| argocd.bootstrap.revision         | Branch/commit/tag to use |
+| argocd.apps.repoURL               | URL to the ArgoCD Applications repository|
+| argocd.apps.revision              | Branch/commit/tag to use |
+| externaldns.clusterName           | The name of the kubernetes cluster, used to manage DNS records with [External-DNS](./bootstrap/cluster-resources/in-cluster/external-dns/README.md)|
+| externaldns.version               | External DNS version to use, see above |
+| github.action.controller.version  | [Github Action runners](./bootstrap/cluster-resources/in-cluster/github-runners/README.md) version to use |
 
 # Bootstrap Kubernetes cluster
 
@@ -66,7 +66,53 @@ metadata:
   namespace: argocd
 type: Opaque
 ````
-## Github runner's secret
+## Github runner's
+Some configuration is needed for Github runners
+
+### Configmaps
+
+Configuration for [buildtools](https://buildtools.io/config/config/):
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: buildtools
+  namespace: github-runners
+data:
+  .buildtools.yaml: |-
+    registry:
+      ecr:
+        url: 292662267961.dkr.ecr.eu-west-1.amazonaws.com
+
+    targets:
+      local:
+        context: docker-desktop
+        namespace: default
+      test:
+        context: stc-test.k8s.local
+
+    gitops:
+      local:
+        url: git@github.com:sparetimecoders/argocd-apps.git
+        path: apps/local/argocd-test
+```
+
+Optioanl Git configuration for [buildtools](https://buildtools.io/config/gitops/):
+
+````yaml
+apiVersion: v1
+data:
+  .gitconfig: |-
+    [user]
+      name = Gitops commiter
+      email = gitops@buildtools.io
+kind: ConfigMap
+metadata:
+  name: gitconfig
+  namespace: github-runners
+````
+### Secrets
 
 ```yaml
 apiVersion: v1
@@ -81,10 +127,25 @@ data:
   github_app_private_key: --the private key for the Githab App--
   ```
 
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ssh-secret
+  namespace: github-runners
+type: Opaque
+data:
+  id_rsa: --the private key used to clone GIT repositories--
+  known_hosts: --content of a known_hosts file--
+  ```
+
+
 # TODOs
 * Cleanup docs
 * Copy some of the contents of this file to `build`?
-
+* Application of Applications for cluster-resources
+* Example of setting it up
 
 [ArgoCD]: https://argo-cd.readthedocs.io/en/stable
 [Manage Argo CD Using Argo CD]: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#manage-argo-cd-using-argo-cd

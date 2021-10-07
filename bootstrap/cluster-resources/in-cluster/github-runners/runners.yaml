@@ -30,6 +30,19 @@ spec:
         requests:
           cpu: "500m"
           memory: "1Gi"
+      volumeMounts:
+        - mountPath: home/runner/.buildtools.yaml
+          name: buildtools-config
+          subPath: .buildtools.yaml
+        - mountPath: home/runner/.ssh
+          name: ssh-secret
+      volumes:
+        - configMap:
+            name: buildtools
+          name: buildtools-config
+        - name: ssh-secret
+          secret:
+            secretName: ssh-secret
 ---
 
 apiVersion: actions.summerwind.dev/v1alpha1
@@ -43,8 +56,8 @@ spec:
   minReplicas: 1
   maxReplicas: 5
   metrics:
-  - type: PercentageRunnersBusy
-    scaleUpThreshold: '0.75'    # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up
-    scaleDownThreshold: '0.3'   # The percentage of busy runners at which the number of desired runners are re-evaluated to scale down
-    scaleUpFactor: '1.4'        # The scale up multiplier factor applied to desired count
-    scaleDownFactor: '0.7'      # The scale down multiplier factor applied to desired count
+    - type: PercentageRunnersBusy
+      scaleUpThreshold: '0.75'    # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up
+      scaleDownThreshold: '0.3'   # The percentage of busy runners at which the number of desired runners are re-evaluated to scale down
+      scaleUpFactor: '1.4'        # The scale up multiplier factor applied to desired count
+      scaleDownFactor: '0.7'      # The scale down multiplier factor applied to desired count
