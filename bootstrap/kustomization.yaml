@@ -6,4 +6,3 @@ resources:
   - cluster-resources.yaml
   - root.yaml
   - bootstrap-app.yaml
-
